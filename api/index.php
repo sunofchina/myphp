@@ -1,36 +1,19 @@
 <?php
-//Rewrite by absentfriend
-$cityId = '5A';
-$playId= $_GET['id'];
-$relativeId = $playId;
-$type='1';
-$appId = "kdds-chongqingdemo";
-$url ='http://portal.centre.bo.cbnbn.cn/others/common/playUrlNoAuth?cityId=5A&playId='.$playId.'&relativeId='.$relativeId.'&type=1';
-$curl = curl_init();
-$timestamps = round(microtime(true) * 1000);
-$sign =md5('aIErXY1rYjSpjQs7pq2Gp5P8k2W7P^Y@appId' . $appId . "cityId" . $cityId. "playId" . $playId . "relativeId" . $relativeId . "timestamps" . $timestamps . "type" . $type);
-curl_setopt_array($curl, array(
-  CURLOPT_URL => $url,
-  CURLOPT_RETURNTRANSFER => true,
-  CURLOPT_ENCODING => '',
-  CURLOPT_MAXREDIRS => 10,
-  CURLOPT_TIMEOUT => 0,
-  CURLOPT_FOLLOWLOCATION => true,
-  CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-  CURLOPT_CUSTOMREQUEST => 'GET',
-  CURLOPT_HTTPHEADER => array(
-    'appId: kdds-chongqingdemo',
-    'sign: '.$sign,
-    'timestamps:'.$timestamps,
-    'Content-Type: application/json;charset=utf-8'
-  ),
-));
-
-$response = curl_exec($curl);
-
-curl_close($curl);
-$url = (json_decode($response));
-echo $codes = $url->data->result->protocol[0]->transcode[0]->url;
-exit;
-header('location:'.$codes);
-?>
+date_default_timezone_set("Asia/Shanghai");
+$channel = empty($_GET['id']) ? "cctv16hd4k/15000000" : trim($_GET['id']);
+$array = explode("/", $channel);
+$stream = "http://lnbuott-v5-live.bestvcdn.com.cn/live/program/live/{$array[0]}/{$array[1]}/";
+$timestamp = substr(time(), 0, 9) - 7;
+$current = "#EXTM3U" . "\r\n";
+$current .= "#EXT-X-VERSION:3" . "\r\n";
+$current .= "#EXT-X-TARGETDURATION:3" . "\r\n";
+$current .= "#EXT-X-MEDIA-SEQUENCE:{$timestamp}" . "\r\n";
+for ($i = 0; $i < 3; $i++) {
+    $timematch = $timestamp . '0';
+    $timefirst = date('YmdH', $timematch);
+    $current .= "#EXTINF:3," . "\r\n";
+    $current .= $stream . $timefirst . "/" . $timestamp . ".ts" . "\r\n";
+    $timestamp = $timestamp + 1;
+}
+header("Content-Disposition: attachment; filename=playlist.m3u8");
+echo $current;
